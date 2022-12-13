@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Project</title>
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+     <link rel="stylesheet" href="../css/expense.css">
+     
+</head>
+<body>
+
+  <header id="header">
+   
+    <h1>Expense app</h1>
+    <button id="History" >Day To Day Expenses</button>
+    <button class="leader-bord" id="lederbtn" >Leader bord</button>
+
+      <!-- hamberger -->
+    <button id="hambergerbtn" class="hamburger fa fa-bars"></button>
+    <nav id="nav">
+      <ul>
+      <li><button id="home" class="fa fa-home"><span> Home</span></button></li>
+      <li> <button id="pay-button" class="fa fa-bookmark"> <span>Buy Premium</span> </button> </li>
+      <li><button id="logout" class="fa fa-sign-out"><span>logout</span></button>  </li>
+  </ul>
+  </nav> 
+</header>
+  <div class="homecontainer">
+  <div class="wrapper">
+    <div class="container">
+      <div class="sub-container">
+        
+        
+        <div class="user-amount-container">
+          <h3>Enter Expenses</h3>
+          <p class="hide error" id="product-title-error">
+            Values cannot be empty
+          </p>
+          <div class="inputs">
+          <input
+          type="number"
+          id="amount"
+          placeholder="Amount"
+        />
+          <input
+            type="text"
+            class="product-title"
+            id="description"
+            placeholder="Description"
+          />
+          <select id="select" class="category" >
+            <option  value=""disabled selected>category</option>
+            <option value="Movie" >Movie</option>
+            <option value="Diesel" >Diesel</option>
+            <option value="Petrol" >Petrol</option>
+            <option value="foog" >food</option>
+            <option value="grocery" >grocery</option>
+            <option value="Others">Others</option>
+        </select>
+      </div>
+          <button class="submit" id="add-expenses" >Add</button>
+        </div>
+      </div>
+    </div> 
+    <div class="usersExpenses">
+
+      <div class="output-container flex-space">
+      <button id="userbtn" >X</button>
+          <div class="totalExpenses">
+              <p>Total Expenses</p>
+              <span id="expenditure-value">0</span>
+          </div>
+      </div>
+  
+  
+    <div class="list">
+      <h3>Expenses</h3>
+      <div class="list-container" id="list"></div>
+    </div>
+  </div>
+</div> 
+        
+<div class="pagination">
+  <form action="" id="formid">
+  <select id="size" class="size" >
+    <option  value=""disabled selected>size</option>
+    <option value="2" >2</option>
+    <option value="3" >3</option>
+    <option value="4" >4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+</select>
+<div id="pages"></div>
+</form>
+
+</div>
+           
+      <!-- leader bord -->
+      <div id="leadernav" class="leadernav">
+      <button id="X">X</button>
+      <h1 class="Title">Leader Bord</h1>
+      <table>
+      
+        <tbody id="leaderUl">
+          <tr>
+            <th>Ranks</th>
+          <th>name</th>
+          <th>Expenses</th>
+          <th><input type="hidden" class="usersdetails"></th>
+          </tr>         
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- dat to day expenses -->
+    <div class="expense-container" id="expense-container">
+      <button class="X-2">X</button>
+
+      <h2>Day To Day Expenses</h2>
+    <table>
+      <tbody id="Historytbl" class="table">
+       
+       
+      </tbody>
+    </table>
+      
+    <table id="downloadtbl">
+      <tbody id="filesUrl" class="table">
+       
+      </tbody>
+    </table>
+    
+    <a id='download' href='' class="download">download</a>
+    <!-- <button class="download" id="downloadedfiles">downloaded files</button> -->
+    </div>
+  </div> 
+    
+
+   
+  
+
+              
+     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+     <script src="../DOM/app.js"></script> 
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.3/axios.min.js"></script>
+</body>
+</html>
