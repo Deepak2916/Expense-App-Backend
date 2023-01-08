@@ -14,7 +14,9 @@
             let statusText=document.getElementById('status')
             try{
             let user= await axios.get(`http://localhost:4000/user/login?email=${email}&password=${password}`)
+           console.log(user.data.token)
             localStorage.setItem('token',user.data.token)
+
            if(user.data.success){
             statusText.innerHTML=user.data.message
             // document.getElementById('login-page').style='display:none'
@@ -27,10 +29,10 @@
         
             }
             catch(err){
-                console.log(err.response)
+                // console.log(err.response)
                 console.log(err)
-                statusText.innerHTML= err.response.data.message
-                setTimeout(()=>{statusText.innerHTML= ''},3000)
+                // statusText.innerHTML= err.response.data.message
+                // setTimeout(()=>{statusText.innerHTML= ''},3000)
                 
             }
            

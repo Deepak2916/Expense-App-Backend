@@ -1,26 +1,29 @@
-const Expense=require('../models/expenseModels')
-const User=require('../models/signupModel')
+
+const User=require('../models/UserModel')
 const Razorpay = require('razorpay');
-const S3Service=require('../services/S3Service')
-const downloadfiles=require('../models/downloadExpenses')
+const S3Service=require('../services/S3Service');
+
 require('dotenv').config()
 
 
 const addExpense=async (req,res)=>{
-    let user=await Expense.findAll()
+   
 
     let info={
         Amount:req.body.Amount,
         Description:req.body.Description,
         Category:req.body.Category,
-        userId:req.user[0].id
+        createdAt:new Date()
+       
     }
-    // console.log(info)
-    // console.log('.........>',req.user[0].id)
+  
     try{
-        
-        const userExpense=await Expense.create(info)
-        res.status(200).json(userExpense)
+     
+        let user=await User.find({email:req.user[0].email})
+        user[0].expenses.push(info)
+      
+        await user[0].save()
+        res.status(200).json(req.user[0])
     }
     catch(err){
        console.log(err) 
@@ -31,11 +34,11 @@ const getAllExpenses=async (req,res)=>{
         let pageNumber=+req.query.page
         let size=+req.query.size
    
-        let total=await Expense.count({where:{userId:req.user[0].id}})
+        let total=req.user[0].expenses.length
        
         let pages=Math.ceil(total/size)
         let page;
-        console.log(pageNumber)
+     
         if(pageNumber>0){
             page=pageNumber
         }
@@ -43,15 +46,26 @@ const getAllExpenses=async (req,res)=>{
             page=pages
         }
        
-        // console.log('-----------',req.user[0].id)
-        // console.log(page,size)
-        const userExpense=await Expense.findAll({
-            where:{userId:req.user[0].id},
-            limit:size,
-            offset:(page-1)*size
-    })
+      
+        const user=await User.find({_id:req.user[0]._id})
+        
+       
+    let currentPage=(page-1)*size
+    let currentSize=currentPage+size
+   
+    let userExpenses;
+    let flag=req.query.daytoday
+   
+    if(flag=='true'){
+        userExpenses=user[0].expenses
+    }
+    else{
+     userExpenses=user[0].expenses.slice(currentPage,currentSize)
+    }
+  
         res.status(200).json({
-           expenses: userExpense,
+           expenses: userExpenses,
+           premium:user[0].premiumUser,
            pages:pages,
            user:req.user[0]
         })
@@ -64,8 +78,9 @@ const getAllExpenses=async (req,res)=>{
 const getOneUserExpenses=async (req,res)=>{
     try{
          let id=req.query.id
-        const userExpense=await Expense.findAll({where:{userId:id}})
-        res.status(200).json(userExpense)
+        const user=await User.find({_id:id})
+        const userExpenses=user[0].expenses
+        res.status(200).json(userExpenses)
     }
     catch(err){
         console.log(err)
@@ -73,36 +88,16 @@ const getOneUserExpenses=async (req,res)=>{
    
     
 }
-const deleteExpence=async (req,res)=>{
+const deleteExpense=async (req,res)=>{
     try{
         let id=req.query.id
-        await Expense.destroy({where:{id:id,userId:req.user[0].id}})
+       await req.user[0].delete(id)
         res.status(200).send('expense deleted')
     }
     catch(err){
         console.log(err)
     }
 }
-
-
-// const editExpence=async (req,res)=>{
-//     let info={
-//         Amount:req.body.Amount,
-//         Description:req.body.Description,
-//         Category:req.body.Category 
-//     }
-//     try{
-       
-//         let id=req.params.id
-//         const userExpense=await expenseModel.update(info,{where:{id:id}})
-//         res.status(200).json(userExpense)
-//     }
-//     catch(err){
-//         console.log(err)
-//     }
-// }
-
-
 
 var instance = new Razorpay({ key_id:process.env.RAZOR_KEY_ID, key_secret:process.env.RAZOR_KEY_SECRET})
 
@@ -119,17 +114,17 @@ const orderPremiumAccount = async (req,res)=>{
 }
 
 const leaderBord=async (req,res)=>{
-    let Allusers=await User.findAll()
+    let Allusers=await User.find()
     let arr=[]
     
     for(let user of Allusers){
         let total=0
-        let expenses=await Expense.findAll({where:{userId:user.id}})
+        let expenses=user.expenses
         expenses.forEach((expense)=>{
             if(expense.Amount>0)
             total+=expense.Amount
         })
-        arr.push([user.name,total,user.id])
+        arr.push([user.name,total,user._id,user.premiumUser])
     }
     arr.sort((a,b)=>b[1]-a[1])
    
@@ -137,23 +132,41 @@ const leaderBord=async (req,res)=>{
         users:arr})
 
 }
+const GetPremiumAccount=async (req,res)=>{
+    
+    console.log('premium')
+    req.user[0].premiumUser=true
+    await req.user[0].save()
+}
 
 // downloading expenses
 
 
 const DownloadExpenses=async (req,res)=>{
-    let userId=req.body.id
-    const expenses=await Expense.findAll({where:{userId:userId}})
-
+  
+    const expenses=req.user[0].expenses
+    console.log(expenses)
     const stringifyexpenses=JSON.stringify(expenses)
-    const filename=`Expense/${userId}/${new Date()}.txt`;
+    const filename=`Expense/${req.user[0]._id}/${new Date()}.txt`;
     const fileUrl= await S3Service.uploadToS3(stringifyexpenses,filename)
-    await downloadfiles.create({
+    let info={
         fileUrl:fileUrl,
-        userId:userId
-    })
-    res.json({fileUrl,success:true})
+        createdAt:new Date()
+    }
+    let user=await User.find({email:req.user[0].email})
+        user[0].downloadedFiles.push(info)
+      
+        await user[0].save()
+        res.status(200).json({
+            success:true
+        })
 
 }
 
-module.exports={addExpense,getAllExpenses,deleteExpence,orderPremiumAccount,leaderBord,getOneUserExpenses,DownloadExpenses}
+const GetFileUrls= (req,res)=>{
+    res.json({
+        fileUrl:req.user[0].downloadedFiles
+    })
+
+}
+module.exports={addExpense,getAllExpenses,deleteExpense,orderPremiumAccount,leaderBord,getOneUserExpenses,DownloadExpenses,GetPremiumAccount,GetFileUrls}

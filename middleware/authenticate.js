@@ -1,15 +1,15 @@
 const jwt=require('jsonwebtoken')
-const User=require('../models/signupModel')
+const User=require('../models/UserModel')
 require('dotenv').config()
 
 const authenticate= async (req,res,next)=>{
     try{
       const token=req.header('authorization');
-    //   console.log("token----->",token)
+      // console.log("token----->",token)
       
       const user=jwt.verify(token,process.env.SECRETKEY)
         
-      let expenseUser= await User.findAll({where:{email:user.email}})
+      let expenseUser= await User.find({email:user.email})
       // console.log(expenseUser[0].id)
       req.user=expenseUser;
     //   console.log(req.user)

@@ -20,16 +20,16 @@ function displayExpenses(id,amount,description,category,disabled){
 }   
 
 async function Axios(){
-    console.log("axios called")
+   
     try{
         if(editId!=0) await axios.put(`http://localhost:4000/expense/edit/${editId}`,obj)
             
         else {
-            console.log('added to axios')
+         
             let token=localStorage.getItem('token')
-            console.log(token)
-            let expense=await axios.post('http://localhost:4000/expense',obj,{headers:{"Authorization":token}})
-            id=expense.data.id
+           
+            await axios.post('http://localhost:4000/expense',obj,{headers:{"Authorization":token}})
+          
         }
     }
 
@@ -49,9 +49,7 @@ let category=document.getElementById('select').value
     Description:description,
     Category:category
 }
-// console.log(amount,description);
-// // console.log(obj,id,editId,deleteId,displayAll)
-//  editId=0
+
  Axios(obj)
 displayExpenses(id,amount,description,category,'')
 document.getElementById('amount').value=''
@@ -60,15 +58,16 @@ document.getElementById('description').value=''
 let totalPages=1
 function DisplayAllExpenses(pageNumber){
     let token=localStorage.getItem('token')
-    // console.log(token)
+    
     async function Window(){
     let size=localStorage.getItem('size')
-    let expenses= await axios.get(`http://localhost:4000/expense?page=${pageNumber}&size=${size}`,{headers:{"Authorization":token}})
+    let expenses= await axios.get(`http://localhost:4000/expense?page=${pageNumber}&size=${size}&daytoday='no'`,{headers:{"Authorization":token}})
    
         let allExpenses=expenses.data.expenses
+      
         User=expenses.data.user
         totalPages=expenses.data.pages
-        // document.querySelector('.pagination').innerHTML=''
+        
         if(expenses.data.pages!='0'){
             document.getElementById('pages').innerHTML=''
         Displaypages(parseInt(expenses.data.pages))
@@ -77,9 +76,8 @@ function DisplayAllExpenses(pageNumber){
      
        
 
-        let premiumUser=await axios.get(`http://localhost:4000/premium/get?id=${User.id}`)
-
-        if(premiumUser.data.success){
+        let premiumUser=expenses.data.premium
+        if(premiumUser){
             document.getElementById('pay-button').disabled=true
             document.getElementById("History").classList.add('active')
             
@@ -91,7 +89,8 @@ function DisplayAllExpenses(pageNumber){
         document.getElementById('expenditure-value').textContent=0
       for(var i=0;i<allExpenses.length;i++){
            let e=allExpenses[i]
-           displayExpenses(e.id,e.Amount,e.Description,e.Category,'')
+         
+           displayExpenses(e._id,e.Amount,e.Description,e.Category,'')
       } 
     }
     Window()  
@@ -100,13 +99,10 @@ function DisplayAllExpenses(pageNumber){
  //Display pages
 
  let pagesDiv=document.getElementById('formid')
- console.log(pagesDiv)
- function Displaypages(pages){
-    
+
+ function Displaypages(pages){ 
      let Addpages=document.getElementById('pages')
-     console.log('form')
      for(let i=1;i<=pages;i++){
-        //  Addpages.innerHTML+=` <button id='${1}'>${3}</button>`
         let btn=document.createElement('button')
         btn.classList.add('pagebtn')
         btn.id=pages-i+1
@@ -119,7 +115,7 @@ function DisplayAllExpenses(pageNumber){
 
  //pagination for expenses
  pagesDiv.addEventListener('click',Addpages)
-console.log(pagesDiv)
+
  function Addpages(e){
    e.preventDefault()
    if(e.target.id=='size'){
@@ -127,8 +123,6 @@ console.log(pagesDiv)
    }
    e.target.className='size'
     document.getElementById('list').innerHTML=''
-    
-    console.log(e.target)
      DisplayAllExpenses(e.target.id)
  }
 window.addEventListener("DOMContentLoaded",()=>{
@@ -140,7 +134,6 @@ function editDelete(e){
     e.preventDefault();
     var li = e.target.parentElement;
     let id=li.children[0].value
-    
 if(e.target.classList.contains('delete')){
     
     if(confirm('Are You Sure?')){
@@ -170,7 +163,7 @@ const btn=document.getElementById('hambergerbtn')
 const nav=document.getElementById('nav')
 
 btn.addEventListener('click',()=>{
-    console.log('hello')
+  
     nav.classList.toggle('active')
   
 
@@ -189,10 +182,8 @@ function logout(e){
 }
 
 // payment
-function paymentStatus(id,status){
-    console.log(User)
-   
-    if(status){ 
+function paymentStatus(){
+    
         document.getElementById('pay-button').disabled=true
         document.getElementById("History").classList.add('active')
         document.getElementById('lederbtn').classList.add('active')
@@ -200,11 +191,13 @@ function paymentStatus(id,status){
         let body= document.querySelector('body')
         body.style='  background-color: #707072;'
         async function addPremium(){
-            await axios.post(`http://localhost:4000/premium/add`,{userId:id})
+            let token=localStorage.getItem('token')
+            
+            await axios.get(`http://localhost:4000/expense/add`,{headers:{"Authorization":token}})
         }
         addPremium()
     }
-}
+
 
 
   
@@ -212,7 +205,6 @@ document.getElementById('pay-button').onclick = function(e){
   
     
     async function userpayment(){
-    //     console.log(User)
     let token=localStorage.getItem('token')
     let expenses= await axios.get(`http://localhost:4000/expense?page=1&size=2`,{headers:{"Authorization":token}})
 
@@ -226,9 +218,9 @@ document.getElementById('pay-button').onclick = function(e){
          "image": "https://media.geeksforgeeks.org/wp-content/uploads/20210806114908/dummy-200x200.png",
         // "order_id": "order_Ko7SRrv6nM075i",  
         "handler": function (response){
-            console.log('handlerresponse:-',response)
+            // console.log('handlerresponse:-',response)
             alert("This step of Payment Succeeded");
-            paymentStatus(user.id,true)
+            paymentStatus()
         },
         "prefill": {
             // Here we are prefilling random contact
@@ -246,9 +238,9 @@ document.getElementById('pay-button').onclick = function(e){
     };
     // var razorpayObject = new Razorpay(options);
     var razorpayObject=new Razorpay(options)
-    // console.log('razorpayObject:-',razorpayObject);
+ 
     razorpayObject.on('payment.failed', function (response){
-          console.log(':-',response);
+         
           alert("This step of Payment Failed");
           paymentStatus(false)
     });
@@ -276,7 +268,7 @@ Xbtn.addEventListener('click',()=>{
 
 leaderbtn.addEventListener('click',()=>{
     if(!leaderbtn.classList.contains('active')){
-        alert('Sorry, to get this feature you need to buy premium')
+        alert('Sorry, Buy premium to get this feature')
         return
     }
     
@@ -287,16 +279,9 @@ window.addEventListener('DOMContentLoaded',()=>{
 async function showUsers(){
     let users=await axios.get(`http://localhost:4000/expense/leaderbord`)
     let bord=document.getElementById('leaderUl')
-    function display(name,expense,id,rank){
-        let premiumUser;
-        
-        async function UserPremium(){
-            let token=localStorage.getItem('token')
-        let expenses= await axios.get(`http://localhost:4000/expense?page=${1}&size=${1}`,{headers:{"Authorization":token}})
-        premiumUser=expenses.data.user
-
-        if(premiumUser.id==id){
-            // console.log(id,name)
+   
+    function display(name,expense,id,premiumUser,rank){
+        if(premiumUser){
             bord.innerHTML+=` 
             <tr id='User'>
             <td>${rank}</td>
@@ -315,32 +300,28 @@ async function showUsers(){
             <td><button type='submit' id='${id}' class='usersdetails'>see expenses</button></td>
             </tr>`
          }
-        }
-        UserPremium()
-        // console.log('id---->',User.id)
+        
      
     }
 
    
     let count=0
     users.data.users.forEach(user=>{
-        // console.log('.....',user[0],user[1],user[2])
+       
         count+=1
-        display(user[0],user[1],user[2],count)
+        display(user[0],user[1],user[2],user[3],count)
     })
    }
    showUsers()
 })
 
-//display user details(for premium users)
-
 let detailsBtn=document.querySelector('table')
 detailsBtn.addEventListener('click',Getdetails)
 
 function Getdetails(e){
-if(e.target.id>0){
-    let del=document.querySelector('.deletebtn')
-    console.log('......>',del)
+    
+if(e.target.id.length>0){
+    
     list.innerHTML=''
     document.querySelector('.user-amount-container').style='display:none'
     document.getElementById('userbtn').style='display:block'
@@ -349,6 +330,7 @@ if(e.target.id>0){
     leadernav.classList.toggle('active')
     async function userExpense(){
         let user=await axios.get(`http://localhost:4000/expense/oneUser?id=${e.target.id}`)
+       
         document.getElementById('expenditure-value').textContent=0
        document.querySelector('.pagination').style='display:none'
         for(let expense of user.data){
@@ -356,8 +338,6 @@ if(e.target.id>0){
         }
     }
     userExpense()
-    // let del=document.getElementById('deletebtn')
-    // console.log('......>',del)
 }
 }
 
@@ -367,7 +347,6 @@ document.getElementById('userbtn').style='display:none'
 document.querySelector('.otherUserStyle').className='list'
 document.querySelector('.pagination').style='display:block'
 leadernav.classList.toggle('active')
-// document.querySelectorAll('.delete').disabled=false
 list.innerHTML=''
 DisplayAllExpenses()
 
@@ -382,57 +361,54 @@ document.querySelector('.X-2').onclick=()=>{
 let dayTodaybtn=document.getElementById('History')
 dayTodaybtn.onclick=()=>{
     if(!dayTodaybtn.classList.contains('active')){
-        alert('Sorry, to get this feature you need to buy premium')
+        alert('Sorry, Buy premium to get this feature')
         return
     }
     document.getElementById('expense-container').style='display:block'
     let table=document.getElementById('Historytbl')
-function displayHistory(date,description,category,income,expenses){
+function displayHistory(date,description,category,expenses){
    
     table.innerHTML+=
   `  <tr>
         <td>${date}</td>
         <td>${description}</td>
         <td>${category}</td>
-        <td>${income}</td>
         <td>${expenses}</td>
     <tr>`
 }
 // download files
 function getDate(date){
-    let Date=date.split('-')
-    return `${Date[0]}-${Date[1]}-${Date[2].slice(0,2)}`
+    let Date=date.split(':')
+    return Date[0].substring(0,Date[0].length-3)
 }
 let download=document.getElementById('download')
 download.onclick=(e)=>{
     e.preventDefault()
 async function DownloadLink(){
-    // let user=await axios.get(`http://localhost:4000/expense/oneUser?id=${User.id}`)
-        let link=await axios.post('http://localhost:4000/expense/download',{
-            id:User.id
-        })
+    let token=localStorage.getItem('token')
+        let link=await axios.get('http://localhost:4000/expense/download',{headers:{"Authorization":token}})
        let a= document.createElement('a')
        a.href=link.data.fileUrl
        a.click()
       
     }
     DownloadLink()
-console.log('downloaded....')
+
 }
 
 async function getexpenses(){
-    let user=await axios.get(`http://localhost:4000/expense/oneUser?id=${User.id}`)
-    console.log(user)
+    let token=localStorage.getItem('token')
+    let userExpenses= await axios.get(`http://localhost:4000/expense?page=0&size=0&daytoday=${true}`,{headers:{"Authorization":token}})
   table.innerHTML=` <tr>
   <th>Date</th>
     <th>Description</th>
     <th>Category</th>
-    <th>Income</th>
     <th>Expenses</th>
 </tr>`
-    user.data.forEach(expense=>{
+
+    userExpenses.data.expenses.forEach(expense=>{
         date=getDate(expense.createdAt)
-        displayHistory(date,expense.Description,expense.Category,0,expense.Amount)
+        displayHistory(date,expense.Description,expense.Category,expense.Amount)
     })
 }
 getexpenses()
@@ -449,13 +425,14 @@ function displayfileUrl(date,fileUrl){
     <tr>`
 }
 async function downloadedfiles(){
-    let files=await axios.get(`http://localhost:4000/files/downloadedfiles/${User.id}`)
-    // console.log(files.data.files)
+    let token=localStorage.getItem('token')
+    let files=await axios.get(`http://localhost:4000/expense/fileUrls`,{headers:{"Authorization":token}})
+   
     tableFiles.innerHTML=`<tr>
     <th>Date</th>
     <th>Downloaded files</th> 
   </tr>`
-    files.data.files.forEach(file=>{
+    files.data.fileUrl.forEach(file=>{
         date=getDate(file.createdAt)
         displayfileUrl(date,file.fileUrl)
     })

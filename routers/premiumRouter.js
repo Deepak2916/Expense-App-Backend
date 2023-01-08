@@ -1,8 +1,9 @@
 const PremiumContoller=require('../controllers/premiumContoller')
+const userAuthenticate=require('../middleware/authenticate')
 const express=require('express')
 const router=express.Router()
 
-router.post('/add',PremiumContoller.PostPremiumAccount)
-router.get('/get',PremiumContoller.GetPremiumUser)
+router.get('/add',userAuthenticate.authenticate,PremiumContoller.GetPremiumAccount)
+
 
 module.exports=router
